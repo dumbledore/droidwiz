@@ -71,7 +71,7 @@ class DeviceFrame(wx.Frame):
         if inside:
             self.pos = x, y
             self.timestamp = event.Timestamp
-            self.statusbar.SetStatusText("[down] {} -> {}".format(event.GetPosition(), self.pos))
+            self.statusbar.SetStatusText("[down] {}".format(self.pos))
 
     def on_mouse_move(self, event):
         if self.pos and self.timestamp:
@@ -83,7 +83,7 @@ class DeviceFrame(wx.Frame):
             if inside and elapsed > self.drag_min_elapsed and self.pos != (x, y):
                 self.pos = x, y
                 self.timestamp = event.Timestamp
-                self.statusbar.SetStatusText("[drag] {} -> {}".format(event.GetPosition(), self.pos))
+                self.statusbar.SetStatusText("[drag] {}".format(self.pos))
 
     def on_mouse_up(self, event):
         self.pos = None
@@ -92,12 +92,11 @@ class DeviceFrame(wx.Frame):
         x, y, inside = self.get_coord_inside(event.GetPosition())
         if inside:
             new_pos = x, y
-            self.statusbar.SetStatusText("[up] {} -> {}".format(event.GetPosition(), new_pos))
+            self.statusbar.SetStatusText("[up] {}".format(new_pos))
 
     def on_size(self, event):
         width, _ = self.GetClientSize()
         size = (width, int(width / self.screen_aspect))
-        print(self.GetClientSize())
 
         if self.GetClientSize() != size:
             self.SetClientSize(size)

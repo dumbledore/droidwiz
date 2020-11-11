@@ -14,8 +14,8 @@ class DeviceFrame(wx.Frame):
         super().__init__(None, title=device.name, *args, **kwargs)
 
         self.device = device
-        self.screen_size = device.get_screen_size()
-        self.screen_aspect = device.get_screen_aspect()
+        self.screen_size = device.wm.get_size()
+        self.screen_aspect = device.wm.get_aspect()
         self.resize_quality = resize_quality
         self.drag_min_elapsed = drag_min_elapsed
         self.screenshot = None

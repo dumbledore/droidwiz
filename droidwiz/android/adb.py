@@ -13,6 +13,11 @@ class ADB(object):
     def name(self):
         return self._name
 
+    def shell(self, command):
+        return subprocess.check_output(
+            [ 'adb', 'shell', command ]
+        )
+
     @staticmethod
     def create_default():
         devices = ADB.list_devices()

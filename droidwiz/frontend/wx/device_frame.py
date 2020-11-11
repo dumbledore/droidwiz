@@ -4,21 +4,26 @@ import droidwiz.android.device
 
 
 class DeviceFrame(wx.Frame):
-    def __init__(self, device, *args, **kwargs):
+    def __init__(self, device, drag_min_elapsed=250, size_divisor=640, resize_quality=wx.IMAGE_QUALITY_NORMAL, *args, **kwargs):
         super().__init__(None, title=device.name, *args, **kwargs)
 
         self.device = device
         self.screen_size = device.get_screen_size()
         self.screen_aspect = device.get_screen_aspect()
-        self.bmp = self.device.get_screenshot()
+        self.resize_quality = resize_quality
+        self.drag_min_elapsed = drag_min_elapsed
 
-        self.SetClientSize(self.FromDIP(self.choose_size()))
-        self.SetPosition((self.FromDIP(50),) * 2)
+        # TODO: remove when actual screenshot
+        self.screenshot = wx.Bitmap.FromBufferRGBA(
+                *self.screen_size, self.device.get_screenshot()).ConvertToImage()
+
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
         self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_down)
         self.Bind(wx.EVT_LEFT_UP, self.on_mouse_up)
         self.Bind(wx.EVT_MOTION, self.on_mouse_move)
+
+        self.SetClientSize(self.FromDIP(self.choose_size(size_divisor)))
 
         self.pos = None
         self.timestamp = None
@@ -26,9 +31,9 @@ class DeviceFrame(wx.Frame):
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
         self.statusbar = self.CreateStatusBar()
 
-    def choose_size(self):
+    def choose_size(self, size_divisor):
         size = self.screen_size
-        divisor = max(size) // 640
+        divisor = max(size) // size_divisor
         return [ s // divisor for s in size ]
 
     def get_coord(self, pos):
@@ -67,7 +72,7 @@ class DeviceFrame(wx.Frame):
             # Skip events out of the screen
             x, y, inside = self.get_coord_inside(event.GetPosition())
 
-            if inside and elapsed > 250 and self.pos != (x, y):
+            if inside and elapsed > self.drag_min_elapsed and self.pos != (x, y):
                 self.pos = x, y
                 self.timestamp = event.Timestamp
                 self.statusbar.SetStatusText("[drag] {} -> {}".format(event.GetPosition(), self.pos))
@@ -83,15 +88,15 @@ class DeviceFrame(wx.Frame):
 
     def on_size(self, event):
         width, _ = self.GetClientSize()
-        size = (width, int(width / self.device.get_screen_aspect()))
+        size = (width, int(width / self.screen_aspect))
         print(self.GetClientSize())
 
         if self.GetClientSize() != size:
             self.SetClientSize(size)
 
     def on_paint(self, event):
-        dc = wx.AutoBufferedPaintDC (self)
-        bmp = wx.Bitmap.FromBufferRGBA(*self.device.get_screen_size(), self.bmp)
-        img = bmp.ConvertToImage()
-        img.Rescale(*self.GetSize(), wx.IMAGE_QUALITY_HIGH)
-        dc.DrawBitmap(img.ConvertToBitmap(), 0, 0)
+        dc = wx.AutoBufferedPaintDC(self)
+        if self.screenshot:
+            img = self.screenshot
+            img = img.Scale(*self.GetSize(), self.resize_quality)
+            dc.DrawBitmap(img.ConvertToBitmap(), 0, 0)

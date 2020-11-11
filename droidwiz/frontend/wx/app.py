@@ -11,6 +11,7 @@ def main():
     adb = ADB.create_default()
     device = Device(adb)
     frame = DeviceFrame(device)
+    frame.SetPosition((frame.FromDIP(50),) * 2)
     frame.Show()
 
     app.MainLoop()

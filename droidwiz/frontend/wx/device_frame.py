@@ -106,7 +106,7 @@ class DeviceFrame(wx.Frame):
         dc = wx.AutoBufferedPaintDC(self)
         if self.screenshot:
             img = self.screenshot
-            img = img.Scale(*self.GetSize(), self.resize_quality)
+            img = img.Scale(*self.GetClientSize(), self.resize_quality)
             dc.DrawBitmap(img.ConvertToBitmap(), 0, 0)
 
     def update_screenshot(self, event):

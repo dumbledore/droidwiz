@@ -1,13 +1,13 @@
 class Device(object):
     def __init__(self, adb):
-        self._adb = adb
+        self.adb = adb
 
         # TODO: remove
         self.screenshot = self.generate_screenshot()
 
     @property
     def name(self):
-        return self._adb.name
+        return self.adb.name
 
     def get_screen_size(self):
         # TODO

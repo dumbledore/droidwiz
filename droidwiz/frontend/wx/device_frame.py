@@ -1,10 +1,18 @@
+import io
 import wx
 
 import droidwiz.android.device
 
 
 class DeviceFrame(wx.Frame):
-    def __init__(self, device, drag_min_elapsed=250, size_divisor=640, resize_quality=wx.IMAGE_QUALITY_NORMAL, *args, **kwargs):
+    def __init__(self, device,
+            screenshot_interval=1000,
+            png=True,
+            drag_min_elapsed=250,
+            size_divisor=640,
+            resize_quality=wx.IMAGE_QUALITY_HIGH,
+            *args, **kwargs):
+
         super().__init__(None, title=device.name, *args, **kwargs)
 
         self.device = device
@@ -12,10 +20,8 @@ class DeviceFrame(wx.Frame):
         self.screen_aspect = device.get_screen_aspect()
         self.resize_quality = resize_quality
         self.drag_min_elapsed = drag_min_elapsed
-
-        # TODO: remove when actual screenshot
-        self.screenshot = wx.Bitmap.FromBufferRGBA(
-                *self.screen_size, self.device.get_screenshot()).ConvertToImage()
+        self.screenshot = None
+        self.png = png
 
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
@@ -30,6 +36,10 @@ class DeviceFrame(wx.Frame):
 
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
         self.statusbar = self.CreateStatusBar()
+
+        self.timer = wx.Timer(self, 0)
+        self.Bind(wx.EVT_TIMER, self.update_screenshot)
+        self.timer.Start(screenshot_interval)
 
     def choose_size(self, size_divisor):
         size = self.screen_size
@@ -100,3 +110,13 @@ class DeviceFrame(wx.Frame):
             img = self.screenshot
             img = img.Scale(*self.GetSize(), self.resize_quality)
             dc.DrawBitmap(img.ConvertToBitmap(), 0, 0)
+
+    def update_screenshot(self, event):
+        data = self.device.get_screenshot(self.png)
+
+        if self.png:
+            self.screenshot = wx.Image(io.BytesIO(data), wx.BITMAP_TYPE_PNG)
+        else:
+            self.screenshot = wx.Bitmap.FromBufferRGBA(*self.screen_size, data).ConvertToImage()
+
+        self.Refresh()

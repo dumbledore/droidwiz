@@ -10,7 +10,7 @@ def main():
 
     adb = ADB.create_default()
     device = Device(adb)
-    frame = DeviceFrame(device)
+    frame = DeviceFrame(device, png=False) # TODO: Use PNG
     frame.SetPosition((frame.FromDIP(50),) * 2)
     frame.Show()
 

@@ -2,6 +2,9 @@ class Device(object):
     def __init__(self, adb):
         self._adb = adb
 
+        # TODO: remove
+        self.screenshot = self.generate_screenshot()
+
     @property
     def name(self):
         return self._adb.name
@@ -14,7 +17,14 @@ class Device(object):
         return (lambda width, height: width / height)(*self.get_screen_size())
 
     def get_screenshot(self, png=True):
-        # TODO: just generate dummy screenshot
+        # TODO: FIX
+        if png:
+            raise Exception("PNG not supported")
+
+        return self.screenshot
+
+    # TODO: remove
+    def generate_screenshot(self):
         width, height = self.get_screen_size()
         screenshot = bytearray(width * height * 4)
 

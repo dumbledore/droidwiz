@@ -1,8 +1,6 @@
 import io
 import wx
 
-import droidwiz.android.device
-
 
 class DeviceFrame(wx.Frame):
     def __init__(self, device,

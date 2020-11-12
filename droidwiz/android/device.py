@@ -1,3 +1,4 @@
+from droidwiz.android.input import Input
 from droidwiz.android.wm import WindowManager
 
 
@@ -5,6 +6,7 @@ class Device(object):
     def __init__(self, adb):
         self.adb = adb
         self.wm = WindowManager(adb)
+        self.input = Input(adb)
 
     @property
     def name(self):

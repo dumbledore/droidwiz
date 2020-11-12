@@ -6,7 +6,6 @@ class DeviceFrame(wx.Frame):
     def __init__(self, device,
             screenshot_interval=1000,
             png=True,
-            drag_min_elapsed=250,
             size_divisor=640,
             resize_quality=wx.IMAGE_QUALITY_HIGH,
             *args, **kwargs):
@@ -17,7 +16,6 @@ class DeviceFrame(wx.Frame):
         self.screen_size = device.wm.get_size()
         self.screen_aspect = device.wm.get_aspect()
         self.resize_quality = resize_quality
-        self.drag_min_elapsed = drag_min_elapsed
         self.screenshot = None
         self.png = png
 
@@ -31,6 +29,7 @@ class DeviceFrame(wx.Frame):
 
         self.pos = None
         self.timestamp = None
+        self.moved = False
 
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
         self.statusbar = self.CreateStatusBar()
@@ -74,25 +73,32 @@ class DeviceFrame(wx.Frame):
             self.statusbar.SetStatusText("[down] {}".format(self.pos))
 
     def on_mouse_move(self, event):
-        if self.pos and self.timestamp:
-            elapsed = event.Timestamp - self.timestamp
-
+        if self.pos:
             # Skip events out of the screen
             x, y, inside = self.get_coord_inside(event.GetPosition())
 
-            if inside and elapsed > self.drag_min_elapsed and self.pos != (x, y):
-                self.pos = x, y
-                self.timestamp = event.Timestamp
-                self.statusbar.SetStatusText("[drag] {}".format(self.pos))
+            if inside and self.pos != (x, y):
+                self.moved = True
+                self.statusbar.SetStatusText("[drag] {}".format((x, y)))
 
     def on_mouse_up(self, event):
+        elapsed = event.Timestamp - self.timestamp
+        pos = self.pos
+        moved = self.moved
+
         self.pos = None
         self.timestamp = None
+        self.moved = False
 
         x, y, inside = self.get_coord_inside(event.GetPosition())
         if inside:
             new_pos = x, y
             self.statusbar.SetStatusText("[up] {}".format(new_pos))
+
+            if moved:
+                self.device.input.swipe(pos, new_pos, elapsed)
+            else:
+                self.device.input.tap(new_pos)
 
     def on_size(self, event):
         width, _ = self.GetClientSize()

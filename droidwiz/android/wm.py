@@ -5,7 +5,7 @@ class WindowManager(object):
     def __init__(self, adb):
         self.adb = adb
 
-    GET_SIZE_PATTERN = re.compile('Physical size: (\d+)x(\d+)')
+    GET_SIZE_PATTERN = re.compile(r'Physical size: (\d+)x(\d+)')
 
     def get_size(self):
         out = self.adb.shell('wm size').decode('utf-8')

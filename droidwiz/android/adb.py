@@ -23,16 +23,16 @@ class ADB(object):
             [ 'shell', cmd, ]
         )
 
-    @staticmethod
-    def create_default():
-        devices = ADB.list_devices()
+    @classmethod
+    def create_default(cls, *args, **kargs):
+        devices = cls.list_devices()
 
         if not devices:
             raise Exception("No devices found")
         elif len(devices) > 1:
             raise Exception("Multiple devices found")
 
-        return ADB(devices[0])
+        return cls(devices[0], *args, **kargs)
 
     DEVICES_PATTERN = re.compile(r'^(.*?)\W+device$', re.MULTILINE)
 

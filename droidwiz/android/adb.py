@@ -1,6 +1,7 @@
 # TODO: Support for different ADB versions
 # verified with adb:
 # 30.0.5-6877874
+from enum import Enum
 import re
 import subprocess
 
@@ -8,6 +9,16 @@ import subprocess
 class ADB(object):
     def __init__(self, name):
         self._name = name
+
+    State = Enum('State', [
+        'OFFLINE',
+        'BOOTLOADER',
+        'DEVICE',
+        'RECOVERY',
+        'RESCUE',
+        'SIDELOAD',
+        'DISCONNECT',
+    ])
 
     def command(self, command):
         cmd = [ 'adb', '-s', self.name ]
@@ -22,6 +33,15 @@ class ADB(object):
         return self.command(
             [ 'shell', cmd, ]
         )
+
+    def get_state(self):
+        state = self.command(['get-state']).decode('utf-8')
+        state = state.splitlines()[0].upper()
+
+        if state not in ADB.State.__members__:
+            raise Exception("Unknown state " + state)
+
+        return ADB.State.__members__[state]
 
     @classmethod
     def create_default(cls, *args, **kargs):

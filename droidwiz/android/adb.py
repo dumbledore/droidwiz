@@ -9,13 +9,18 @@ class ADB(object):
     def __init__(self, name):
         self._name = name
 
+    def command(self, command):
+        cmd = [ 'adb', '-s', self.name ]
+        cmd.extend(command)
+        return subprocess.check_output(cmd)
+
     @property
     def name(self):
         return self._name
 
-    def shell(self, command):
-        return subprocess.check_output(
-            [ 'adb', 'shell', command ]
+    def shell(self, cmd):
+        return self.command(
+            [ 'shell', cmd, ]
         )
 
     @staticmethod

@@ -24,6 +24,7 @@ class DeviceFrame(wx.Frame):
         self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_down)
         self.Bind(wx.EVT_LEFT_UP, self.on_mouse_up)
         self.Bind(wx.EVT_MOTION, self.on_mouse_move)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
 
         self.SetClientSize(self.FromDIP(self.choose_size(size_divisor)))
 
@@ -123,3 +124,7 @@ class DeviceFrame(wx.Frame):
             self.screenshot = wx.Bitmap.FromBufferRGBA(*self.screen_size, data).ConvertToImage()
 
         self.Refresh()
+
+    def on_close(self, event):
+        self.timer.Stop()
+        event.Skip()

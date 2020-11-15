@@ -7,6 +7,8 @@ import subprocess
 
 
 class ADB(object):
+    DEBUG = False
+
     def __init__(self, name):
         self._name = name
 
@@ -29,6 +31,10 @@ class ADB(object):
     def command(self, command):
         cmd = [ 'adb', '-s', self.name ]
         cmd.extend(command)
+
+        if self.DEBUG:
+            print(cmd)
+
         return subprocess.check_output(cmd)
 
     @property

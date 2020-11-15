@@ -20,6 +20,12 @@ class ADB(object):
         'DISCONNECT',
     ])
 
+    Transport = Enum('Transport', [
+        'USB',
+        'LOCAL',
+        'ANY',
+    ])
+
     def command(self, command):
         cmd = [ 'adb', '-s', self.name ]
         cmd.extend(command)
@@ -42,6 +48,13 @@ class ADB(object):
             raise Exception("Unknown state " + state)
 
         return ADB.State.__members__[state]
+
+    def wait(self, transport=None, state=State.DEVICE):
+        # Backward compatibility if transport is not present
+        transport = "-" + transport.name.lower() if transport else ""
+        state = state.name.lower()
+
+        self.command([ 'wait-for{}-{}'.format(transport, state) ])
 
     @classmethod
     def create_default(cls, *args, **kargs):

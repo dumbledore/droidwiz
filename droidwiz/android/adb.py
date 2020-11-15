@@ -62,6 +62,22 @@ class ADB(object):
 
         self.command([ 'wait-for{}-{}'.format(transport, state) ])
 
+    PORT = 5555
+
+    @classmethod
+    def connect(cls, host, port=PORT):
+        subprocess.check_call(
+            [ 'adb', 'connect', '{}:{}'.format(host, port) ]
+        )
+
+    @classmethod
+    def disconnect(cls, host=None, port=PORT):
+        cmd = [ 'adb', 'disconnect' ]
+        if host:
+            cmd.append('{}:{}'.format(host, port))
+
+        subprocess.check_call(cmd)
+
     @classmethod
     def create_default(cls, *args, **kargs):
         devices = cls.list_devices()

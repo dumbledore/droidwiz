@@ -1,6 +1,6 @@
 from droidwiz.android.adb import ADB
-from droidwiz.android.input import Input
-from droidwiz.android.wm import WindowManager
+from droidwiz.android.services.input import Input
+from droidwiz.android.services.wm import WindowManager
 
 
 class Device(ADB):

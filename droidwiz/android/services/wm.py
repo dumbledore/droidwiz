@@ -1,11 +1,13 @@
 import re
 
+from droidwiz.android.services.service import Service
 
-class WindowManager(object):
-    def __init__(self, adb):
-        self.adb = adb
-
+class WindowManager(Service):
     GET_SIZE_PATTERN = re.compile(r'Physical size: (\d+)x(\d+)')
+
+    @property
+    def name(self):
+        return "window"
 
     def get_size(self):
         out = self.adb.shell('wm size').decode('utf-8')

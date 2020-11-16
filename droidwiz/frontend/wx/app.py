@@ -16,12 +16,12 @@ def choose_device():
         devices_frame.Close()
         device = Device(name)
         frame = DeviceFrame(device)
-        frame.SetPosition((frame.FromDIP(50),) * 2)
+        frame.Center()
         frame.Bind(wx.EVT_CLOSE, on_close_device)
         frame.Show()
 
     devices_frame = ListDevicesFrame(show_device)
-
+    devices_frame.Center()
     devices_frame.Show()
 
 def main():

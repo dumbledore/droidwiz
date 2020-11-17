@@ -15,7 +15,7 @@ def choose_device():
     def show_device(name):
         devices_frame.Close()
         device = Device(name)
-        frame = DeviceFrame(device)
+        frame = DeviceFrame(device, png=False, screenshot_interval=1, resize_quality=wx.IMAGE_QUALITY_NORMAL)
         frame.Center()
         frame.Bind(wx.EVT_CLOSE, on_close_device)
         frame.Show()

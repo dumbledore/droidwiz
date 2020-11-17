@@ -121,7 +121,9 @@ class DeviceFrame(wx.Frame):
         if self.png:
             self.screenshot = wx.Image(io.BytesIO(data), wx.BITMAP_TYPE_PNG)
         else:
-            self.screenshot = wx.Bitmap.FromBufferRGBA(*self.screen_size, data).ConvertToImage()
+            # the first 4 DWORDS are width, height, pixel format, data space
+            # so skip the first 16 bytes
+            self.screenshot = wx.Bitmap.FromBufferRGBA(*self.screen_size, data[16:]).ConvertToImage()
 
         self.Refresh()
 

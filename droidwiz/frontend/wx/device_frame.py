@@ -1,4 +1,5 @@
 import io
+import time
 import wx
 
 
@@ -33,7 +34,11 @@ class DeviceFrame(wx.Frame):
         self.moved = False
 
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
-        self.statusbar = self.CreateStatusBar()
+        self.statusbar = self.CreateStatusBar(2)
+
+        self.screenshot_timestamp = time.time()
+        self.screenshot_count = 0
+        self.update_screenshot(None)
 
         self.timer = wx.Timer(self, 0)
         self.Bind(wx.EVT_TIMER, self.update_screenshot)
@@ -124,6 +129,16 @@ class DeviceFrame(wx.Frame):
             # the first 4 DWORDS are width, height, pixel format, data space
             # so skip the first 16 bytes
             self.screenshot = wx.Bitmap.FromBufferRGBA(*self.screen_size, data[16:]).ConvertToImage()
+
+        # calculate FPS
+        self.screenshot_count += 1
+        timestamp = time.time()
+        elapsed = timestamp - self.screenshot_timestamp
+        if elapsed >= 5:
+            fps = self.screenshot_count / elapsed
+            self.statusbar.SetStatusText("%.2f FPS" % fps, 1)
+            self.screenshot_timestamp = timestamp
+            self.screenshot_count = 0
 
         self.Refresh()
 

@@ -2,13 +2,14 @@ import io
 import time
 import wx
 
+from .screenshot_thread import ScreenshotThread, EVT_SCREENSHOT
+
 
 class DeviceFrame(wx.Frame):
     def __init__(self, device,
-            screenshot_interval=1000,
             png=True,
+            resize_quality=wx.IMAGE_QUALITY_NORMAL,
             size_divisor=640,
-            resize_quality=wx.IMAGE_QUALITY_HIGH,
             *args, **kwargs):
 
         super().__init__(None, title=device.name, *args, **kwargs)
@@ -18,7 +19,6 @@ class DeviceFrame(wx.Frame):
         self.screen_aspect = device.wm.get_aspect()
         self.resize_quality = resize_quality
         self.screenshot = None
-        self.png = png
 
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
@@ -36,13 +36,8 @@ class DeviceFrame(wx.Frame):
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
         self.statusbar = self.CreateStatusBar(2)
 
-        self.screenshot_timestamp = time.time()
-        self.screenshot_count = 0
-        self.update_screenshot(None)
-
-        self.timer = wx.Timer(self, 0)
-        self.Bind(wx.EVT_TIMER, self.update_screenshot)
-        self.timer.Start(screenshot_interval)
+        self.Bind(EVT_SCREENSHOT, self.update_screenshot)
+        self.screenshot_thread = ScreenshotThread(self, device, png)
 
     def choose_size(self, size_divisor):
         size = self.screen_size
@@ -118,27 +113,10 @@ class DeviceFrame(wx.Frame):
             dc.DrawBitmap(img.ConvertToBitmap(), 0, 0)
 
     def update_screenshot(self, event):
-        data = self.device.get_screenshot(self.png)
-
-        if self.png:
-            self.screenshot = wx.Image(io.BytesIO(data), wx.BITMAP_TYPE_PNG)
-        else:
-            # the first 4 DWORDS are width, height, pixel format, data space
-            # so skip the first 16 bytes
-            self.screenshot = wx.Bitmap.FromBufferRGBA(*self.screen_size, data[16:]).ConvertToImage()
-
-        # calculate FPS
-        self.screenshot_count += 1
-        timestamp = time.time()
-        elapsed = timestamp - self.screenshot_timestamp
-        if elapsed >= 5:
-            fps = self.screenshot_count / elapsed
-            self.statusbar.SetStatusText("%.2f FPS" % fps, 1)
-            self.screenshot_timestamp = timestamp
-            self.screenshot_count = 0
-
+        self.screenshot = event.screenshot
+        self.statusbar.SetStatusText("%.2f FPS" % event.fps, 1)
         self.Refresh()
 
     def on_close(self, event):
-        self.timer.Stop()
+        self.screenshot_thread.stop()
         event.Skip()

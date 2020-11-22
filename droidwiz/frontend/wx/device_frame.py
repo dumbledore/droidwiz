@@ -88,23 +88,20 @@ class DeviceFrame(wx.Frame):
                 self.statusbar.SetStatusText("[drag] {}".format((x, y)))
 
     def on_mouse_up(self, event):
-        elapsed = event.Timestamp - self.timestamp
-        pos = self.pos
-        moved = self.moved
+        x, y, inside = self.get_coord_inside(event.GetPosition())
+        if inside and self.pos:
+            new_pos = x, y
+            self.statusbar.SetStatusText("[up] {}".format(new_pos))
+
+            if self.moved:
+                elapsed = event.Timestamp - self.timestamp
+                self.device.input.swipe(self.pos, new_pos, elapsed)
+            else:
+                self.device.input.tap(new_pos)
 
         self.pos = None
         self.timestamp = None
         self.moved = False
-
-        x, y, inside = self.get_coord_inside(event.GetPosition())
-        if inside:
-            new_pos = x, y
-            self.statusbar.SetStatusText("[up] {}".format(new_pos))
-
-            if moved:
-                self.device.input.swipe(pos, new_pos, elapsed)
-            else:
-                self.device.input.tap(new_pos)
 
     def on_size(self, event):
         width, _ = self.GetClientSize()

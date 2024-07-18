@@ -23,6 +23,10 @@ is released, as it uses the `input` command,
 and support for _UP_/_MOVE_/_DOWN_ events has been
 removed from _AOSP_.
 
+## Running
+
+    python3 -m droidwiz.frontend.wx.app
+
 ## UI
 
 ### Select device

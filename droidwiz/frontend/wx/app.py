@@ -1,5 +1,7 @@
+import sys
 import wx
 
+from droidwiz.android.adb import ADB
 from droidwiz.android.device import Device
 from .device_frame import DeviceFrame
 from .list_devices_frame import ListDevicesFrame
@@ -25,6 +27,10 @@ def choose_device():
     devices_frame.Show()
 
 def main():
+    if not ADB.available():
+        print('ADB not available', file=sys.stderr)
+        sys.exit(1)
+
     app = wx.App()
     choose_device()
     app.MainLoop()

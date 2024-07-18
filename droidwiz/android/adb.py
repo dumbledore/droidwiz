@@ -2,6 +2,7 @@
 # verified with adb:
 # 30.0.5-6877874
 from enum import Enum
+from shutil import which
 import re
 import subprocess
 
@@ -27,6 +28,10 @@ class ADB(object):
         'LOCAL',
         'ANY',
     ])
+
+    @classmethod
+    def available(cls):
+        return which('adb')
 
     def command(self, command):
         cmd = [ 'adb', '-s', self.name ]

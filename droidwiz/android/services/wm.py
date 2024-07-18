@@ -13,7 +13,7 @@ class WindowManager(Service):
         return "window"
 
     def get_size(self):
-        out = self.adb.shell('wm size').decode('utf-8')
+        out = self.adb.shell('wm size')
         return tuple((int(x) for x in WindowManager.GET_SIZE_PATTERN.findall(out)[0]))
 
     def get_aspect(self):

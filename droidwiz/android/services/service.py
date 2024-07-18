@@ -14,7 +14,7 @@ class Service(object):
     FOUND_PATTERN = "Service {}: found"
 
     def is_running(self):
-        out = self.adb.shell("service check " + self.name).decode('utf-8')
+        out = self.adb.shell("service check " + self.name)
 
         return Service.FOUND_PATTERN.format(self.name) in out
 

@@ -25,4 +25,4 @@ class Device(ADB):
         if png:
             cmd += ["-p"]
 
-        return self.shell(cmd)
+        return self.exec_out(" ".join([str(x) for x in cmd]))

@@ -58,6 +58,11 @@ class ADB(object):
             ['shell', cmd, ]
         )
 
+    def exec_out(self, cmd):
+        return self.command(
+            [ 'exec-out', cmd, ], binary=True
+        )
+
     def get_state(self):
         state = self.command('get-state')
         state = state.splitlines()[0].upper()

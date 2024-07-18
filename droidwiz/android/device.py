@@ -10,5 +10,15 @@ class Device(ADB):
         self.wm = WindowManager(self)
         self.input = Input(self)
 
-    def get_screenshot(self, png=True, display=0):
-        return self.shell('screencap%s -d %d' % (" -p" if png else "", display))
+    def get_screenshot(self, png=True, display=None):
+        command = [
+            "screencap"
+        ]
+
+        if png:
+            command += ["-p"]
+
+        if display is not None:
+            command += ["-d"]
+
+        return self.exec_out(" ".join([str(x) for x in command]))

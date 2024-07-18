@@ -28,14 +28,16 @@ class ADB(object):
         'ANY',
     ])
 
-    def command(self, command):
-        cmd = [ 'adb', '-s', self.name ]
-        cmd.extend(command)
+    def command(self, command, binary=False):
+        if not isinstance(command, list):
+            command = [ command ]
+
+        cmd = [ 'adb', '-s', self.name ] + command
 
         if self.DEBUG:
-            print(cmd)
+            print(" ".join(cmd))
 
-        return subprocess.check_output(cmd)
+        return subprocess.check_output(cmd, universal_newlines=not binary)
 
     @property
     def name(self):
@@ -47,7 +49,7 @@ class ADB(object):
         )
 
     def get_state(self):
-        state = self.command(['get-state']).decode('utf-8')
+        state = self.command('get-state')
         state = state.splitlines()[0].upper()
 
         if state not in ADB.State.__members__:
@@ -60,7 +62,7 @@ class ADB(object):
         transport = "-" + transport.name.lower() if transport else ""
         state = state.name.lower()
 
-        self.command([ 'wait-for{}-{}'.format(transport, state) ])
+        self.command('wait-for{}-{}'.format(transport, state))
 
     PORT = 5555
 
@@ -94,7 +96,8 @@ class ADB(object):
     @staticmethod
     def list_devices():
         out = subprocess.check_output(
-            [ 'adb', 'devices' ]
-        ).decode('utf-8')
+            [ 'adb', 'devices' ],
+            universal_newlines=True
+        )
 
         return ADB.DEVICES_PATTERN.findall(out)

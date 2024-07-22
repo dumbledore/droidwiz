@@ -1,6 +1,14 @@
 {
     "files.exclude": {
         "**/__pycache__": true,
-        "**/._.DS_Store": true
+        "**/._.DS_Store": true,
+        ".venv/": true,
+        "dist/": true
+    },
+    "[python]": {
+        "editor.formatOnType": false,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "ms-python.autopep8",
+        "editor.wordBasedSuggestions": "off"
     }
 }

@@ -7,9 +7,10 @@ from droidwiz.frontend.screenshot_thread import ScreenshotThread as ST
 
 ScreenshotEvent, EVT_SCREENSHOT = wx.lib.newevent.NewEvent()
 
+
 class ScreenshotThread(ST):
-    def __init__(self, window, device, png=True):
-        super().__init__(self._callback, device, png)
+    def __init__(self, window, device, png, on_error):
+        super().__init__(self._callback, on_error, device, png)
 
         self.window = window
         self.screen_size = device.wm.get_size()
@@ -20,7 +21,8 @@ class ScreenshotThread(ST):
         else:
             # the first 4 DWORDS are width, height, pixel format, data space
             # so skip the first 16 bytes
-            screenshot = wx.Bitmap.FromBufferRGBA(*self.screen_size, data[16:]).ConvertToImage()
+            screenshot = wx.Bitmap.FromBufferRGBA(
+                *self.screen_size, data[16:]).ConvertToImage()
 
         event = ScreenshotEvent(screenshot=screenshot, fps=fps)
         wx.PostEvent(self.window, event)

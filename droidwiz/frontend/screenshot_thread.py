@@ -3,10 +3,11 @@ import time
 
 
 class ScreenshotThread(threading.Thread):
-    def __init__(self, callback, device, png=True):
+    def __init__(self, callback, error_callback, device, png=True):
         super().__init__()
 
         self.callback = callback
+        self.error_callback = error_callback
         self.device = device
         self.png = png
 
@@ -32,7 +33,11 @@ class ScreenshotThread(threading.Thread):
 
     def run(self):
         while not self.stopping:
-            self.update_screenshot()
+            try:
+                self.update_screenshot()
+            except Exception as e:
+                self.error_callback(e)
+                time.sleep(1)
 
     def stop(self):
         self.stopping = True

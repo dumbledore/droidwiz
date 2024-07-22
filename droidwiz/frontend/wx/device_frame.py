@@ -1,5 +1,3 @@
-import io
-import time
 import wx
 
 from .screenshot_thread import ScreenshotThread, EVT_SCREENSHOT
@@ -7,10 +5,10 @@ from .screenshot_thread import ScreenshotThread, EVT_SCREENSHOT
 
 class DeviceFrame(wx.Frame):
     def __init__(self, device,
-            png=True,
-            resize_quality=wx.IMAGE_QUALITY_NORMAL,
-            size_divisor=640,
-            *args, **kwargs):
+                 png=True,
+                 resize_quality=wx.IMAGE_QUALITY_NORMAL,
+                 size_divisor=640,
+                 *args, **kwargs):
 
         super().__init__(None, title=device.name, *args, **kwargs)
 
@@ -37,12 +35,13 @@ class DeviceFrame(wx.Frame):
         self.statusbar = self.CreateStatusBar(2)
 
         self.Bind(EVT_SCREENSHOT, self.update_screenshot)
-        self.screenshot_thread = ScreenshotThread(self, device, png)
+        self.screenshot_thread = ScreenshotThread(
+            self, device, png, self.on_error)
 
     def choose_size(self, size_divisor):
         size = self.screen_size
         divisor = max(size) // size_divisor
-        return [ s // divisor for s in size ]
+        return [s // divisor for s in size]
 
     def get_coord(self, pos):
         w, h = self.screen_size
@@ -116,6 +115,9 @@ class DeviceFrame(wx.Frame):
         self.screenshot = event.screenshot
         self.statusbar.SetStatusText("%.2f FPS" % event.fps, 1)
         self.Refresh()
+
+    def on_error(self, error):
+        self.statusbar.SetStatusText(f"Error: {error}")
 
     def on_close(self, event):
         self.screenshot_thread.stop()

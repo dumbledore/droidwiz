@@ -1,3 +1,5 @@
+# Copyright (C) 2020-2024, Svetlin Ankov
+
 from droidwiz.android.adb import ADB
 from droidwiz.android.services.input import Input
 from droidwiz.android.services.wm import WindowManager

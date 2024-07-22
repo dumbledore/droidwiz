@@ -1,6 +1,9 @@
+# Copyright (C) 2020-2024, Svetlin Ankov
+
 import re
 
 from droidwiz.android.services.service import Service
+
 
 class WindowManager(Service):
     GET_SIZE_PATTERN = re.compile(r'Physical size: (\d+)x(\d+)')

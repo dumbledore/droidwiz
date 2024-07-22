@@ -1,3 +1,5 @@
+# Copyright (C) 2020-2024, Svetlin Ankov
+
 import wx
 
 from .screenshot_thread import ScreenshotThread, EVT_SCREENSHOT

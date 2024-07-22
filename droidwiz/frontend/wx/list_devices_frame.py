@@ -1,3 +1,5 @@
+# Copyright (C) 2020-2024, Svetlin Ankov
+
 import re
 import wx
 
@@ -10,7 +12,7 @@ class ListDevicesFrame(wx.Frame):
 
         self.on_select = on_select
 
-        self.devices = [ ]
+        self.devices = []
 
         panel = wx.Panel(self)
 
@@ -73,7 +75,7 @@ class ListDevicesFrame(wx.Frame):
         device = self.list.GetString(sel)
 
         self.disconnect_button.Enable(bool(
-                ListDevicesFrame.NET_DEVICE.fullmatch(device)))
+            ListDevicesFrame.NET_DEVICE.fullmatch(device)))
 
     def on_start_device(self, event):
         sel = self.list.GetSelection()
@@ -82,7 +84,8 @@ class ListDevicesFrame(wx.Frame):
         self.on_select(device)
 
     def on_connect(self, event):
-        device = wx.GetTextFromUser('Enter device: IP[:PORT]', 'Connect device')
+        device = wx.GetTextFromUser(
+            'Enter device: IP[:PORT]', 'Connect device')
         if device:
             port = ADB.PORT
             full_device = ListDevicesFrame.NET_DEVICE.findall(device)

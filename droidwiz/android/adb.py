@@ -1,3 +1,5 @@
+# Copyright (C) 2020-2024, Svetlin Ankov
+
 # TODO: Support for different ADB versions
 # verified with adb:
 # 30.0.5-6877874
@@ -34,7 +36,7 @@ class ADB(object):
         return which('adb')
 
     def command(self, command):
-        cmd = [ 'adb', '-s', self.name ]
+        cmd = ['adb', '-s', self.name]
         cmd.extend(command)
 
         if self.DEBUG:
@@ -51,7 +53,7 @@ class ADB(object):
             cmd = " ".join(cmd)
 
         return self.command(
-            [ 'shell', cmd, ]
+            ['shell', cmd, ]
         )
 
     def get_state(self):
@@ -68,19 +70,19 @@ class ADB(object):
         transport = "-" + transport.name.lower() if transport else ""
         state = state.name.lower()
 
-        self.command([ 'wait-for{}-{}'.format(transport, state) ])
+        self.command(['wait-for{}-{}'.format(transport, state)])
 
     PORT = 5555
 
     @classmethod
     def connect(cls, host, port=PORT):
         subprocess.check_call(
-            [ 'adb', 'connect', '{}:{}'.format(host, port) ]
+            ['adb', 'connect', '{}:{}'.format(host, port)]
         )
 
     @classmethod
     def disconnect(cls, host=None, port=PORT):
-        cmd = [ 'adb', 'disconnect' ]
+        cmd = ['adb', 'disconnect']
         if host:
             cmd.append('{}:{}'.format(host, port))
 
@@ -102,7 +104,7 @@ class ADB(object):
     @staticmethod
     def list_devices():
         out = subprocess.check_output(
-            [ 'adb', 'devices' ]
+            ['adb', 'devices']
         ).decode('utf-8')
 
         return ADB.DEVICES_PATTERN.findall(out)

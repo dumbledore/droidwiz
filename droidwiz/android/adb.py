@@ -47,6 +47,9 @@ class ADB(object):
         return self._name
 
     def shell(self, cmd):
+        if isinstance(cmd, list):
+            cmd = " ".join(cmd)
+
         return self.command(
             [ 'shell', cmd, ]
         )

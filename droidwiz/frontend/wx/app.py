@@ -1,5 +1,6 @@
 # Copyright (C) 2020-2024, Svetlin Ankov
 
+import subprocess
 import sys
 import wx
 
@@ -19,11 +20,25 @@ def choose_device():
 
     def show_device(name):
         devices_frame.Close()
-        device = Device(name)
-        frame = DeviceFrame(device, png=True)
-        frame.Center()
-        frame.Bind(wx.EVT_CLOSE, on_close_device)
-        frame.Show()
+        devices_frame.Destroy()
+        try:
+            device = Device(name)
+            frame = DeviceFrame(device, png=True)
+            frame.Center()
+            frame.Bind(wx.EVT_CLOSE, on_close_device)
+            frame.Show()
+        except subprocess.SubprocessError as e:
+            dlg = wx.MessageDialog(
+                None, e.stderr, "Error", wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+            choose_device()
+        except Exception as e:
+            dlg = wx.MessageDialog(
+                None, str(e), "Error", wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+            choose_device()
 
     devices_frame = ListDevicesFrame(show_device)
     devices_frame.Center()

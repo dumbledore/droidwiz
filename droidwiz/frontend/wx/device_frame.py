@@ -12,14 +12,14 @@ class DeviceFrame(wx.Frame):
                  size_divisor=640,
                  *args, **kwargs):
 
-        super().__init__(None, title=device.name, *args, **kwargs)
-
         self.device = device
         self.screen_size = device.wm.get_size()
         self.screen_aspect = device.wm.get_aspect()
         self.resize_quality = resize_quality
         self.screenshot = None
         self.png = png
+
+        super().__init__(None, title=device.name, *args, **kwargs)
 
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)

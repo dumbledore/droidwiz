@@ -42,7 +42,7 @@ class ADB(object):
         if self.DEBUG:
             print(cmd)
 
-        return subprocess.check_output(cmd)
+        return subprocess.check_output(cmd, stderr=subprocess.PIPE)
 
     @property
     def name(self):

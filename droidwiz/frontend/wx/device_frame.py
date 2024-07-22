@@ -17,6 +17,7 @@ class DeviceFrame(wx.Frame):
         self.screen_aspect = device.wm.get_aspect()
         self.resize_quality = resize_quality
         self.screenshot = None
+        self.png = png
 
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
@@ -113,7 +114,8 @@ class DeviceFrame(wx.Frame):
 
     def update_screenshot(self, event):
         self.screenshot = event.screenshot
-        self.statusbar.SetStatusText("%.2f FPS" % event.fps, 1)
+        self.statusbar.SetStatusText("%.2f FPS (%s)" % (
+            event.fps, "PNG" if self.png else "RAW"), 1)
         self.Refresh()
 
     def on_error(self, error):

@@ -1,6 +1,7 @@
 # Copyright (C) 2020-2024, Svetlin Ankov
 
 import subprocess
+import sys
 import re
 import wx
 
@@ -13,87 +14,96 @@ class ListDevicesFrame(wx.Frame):
 
         self.on_select = on_select
 
-        self.devices = []
+        # Menu bar
+        self.SetMenuBar(self.create_menu())
 
-        panel = wx.Panel(self)
-
-        device_panel = wx.Panel(panel)
-        self.list = wx.ListBox(device_panel)
-
-        # Buttons that work on a selected device
-        self.device_buttons = wx.Panel(device_panel)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-
-        def add_device_button(name, cb):
-            button = wx.Button(self.device_buttons, label=name)
-            button.Bind(wx.EVT_BUTTON, cb)
-            sizer.Add(button, 0, wx.EXPAND)
-
-        add_device_button("Start", self.on_start_device)
-        add_device_button("Root", lambda _: self.run_adb_command(["root"]))
-        add_device_button("Unroot", lambda _: self.run_adb_command(["unroot"]))
-        add_device_button(
-            "Remount", lambda _: self.run_adb_command(["remount"]))
-        add_device_button("Reboot", lambda _: self.run_adb_command(["reboot"]))
-        add_device_button("Bootloader", lambda _: self.run_adb_command(
-            ["reboot", "bootloader"]))
-
-        self.device_buttons.Disable()
-        self.device_buttons.SetSizer(sizer)
-        self.device_buttons.Fit()
-
-        # Buttons that don't require a selected device
-        button_panel = wx.Panel(panel)
-        self.connect_button = wx.Button(button_panel, label="Connect")
-        self.connect_button.Bind(wx.EVT_BUTTON, self.on_connect)
-
-        self.disconnect_button = wx.Button(button_panel, label="Disconnect")
-        self.disconnect_button.Disable()
-        self.disconnect_button.Bind(wx.EVT_BUTTON, self.on_disconnect)
-
-        # device panel (list + buttons)
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.list, 4, wx.EXPAND)
-        sizer.Add(self.device_buttons, -1, wx.EXPAND)
-        device_panel.SetSizer(sizer)
-        device_panel.Fit()
-
-        # buttons on the lower part
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.connect_button)
-        sizer.Add(self.disconnect_button)
-        button_panel.SetSizer(sizer)
-        button_panel.Fit()
-
-        # main sizer
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(device_panel, 4, wx.EXPAND)
-        sizer.Add(button_panel, -1, wx.EXPAND)
-        panel.SetSizer(sizer)
-        panel.Fit()
-
+        # Device list
+        self.list = wx.ListBox(self)
         self.Bind(wx.EVT_LISTBOX, self.on_select_device)
         self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_start_device)
 
+        # Device update timer
         self.timer = wx.Timer(self, 0)
         self.Bind(wx.EVT_TIMER, self.update_devices)
         self.timer.Start(1000)
 
+        # Make sure we handle close
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
+        # Don't wait for initial timer event
         self.update_devices()
+
+    def create_menu(self):
+        menu_bar = wx.MenuBar()
+
+        # File
+        file_menu = wx.Menu()
+
+        file_options = file_menu.Append(wx.ID_ANY, "Options", "Application configuration")
+        menu_bar.Append(file_menu, "&File")
+
+        # Device
+        device_menu = wx.Menu()
+
+        device_start = device_menu.Append(wx.ID_ANY, "&Start", "Start selected device")
+        device_menu.AppendSeparator()
+
+        device_root = device_menu.Append(wx.ID_ANY, "&Root", "Restart ADBD with root")
+        device_unroot = device_menu.Append(wx.ID_ANY, "&Unroot", "Restart ADBD without root")
+        device_remount = device_menu.Append(wx.ID_ANY, "Re&mount", "Remount partitions read-write")
+        device_reboot = device_menu.Append(wx.ID_ANY, "Reboo&t", "Reboots the device")
+        device_bootloader = device_menu.Append(wx.ID_ANY, "&Bootloader", "Reboots the device into the bootloader")
+        device_menu.AppendSeparator()
+
+        device_disconnect = device_menu.Append(wx.ID_ANY, "&Disconnect", "Disconnect from given TCP/IP device")
+
+        menu_bar.Append(device_menu, "&Device")
+
+        # Network
+        network_menu = wx.Menu()
+
+        network_connect = network_menu.Append(wx.ID_ANY, "&Connect", "Connect to a device via TCP/IP communication")
+        network_disconnect = network_menu.Append(wx.ID_ANY, "&Disconnect", "Disconnect all TCP/IP devices")
+
+        menu_bar.Append(network_menu, "&Network")
+
+        help_menu = wx.Menu()
+        help_menu.Append(wx.ID_ABOUT, "", "About this application")
+        menu_bar.Append(help_menu, "&Help")
+
+        # Bind the events
+        self.Bind(wx.EVT_MENU, self.on_start_device, device_start)
+        self.Bind(wx.EVT_MENU, lambda _: self.run_adb_command(["root"]), device_root)
+        self.Bind(wx.EVT_MENU, lambda _: self.run_adb_command(["unroot"]), device_unroot)
+        self.Bind(wx.EVT_MENU, lambda _: self.run_adb_command(["remount"]), device_remount)
+        self.Bind(wx.EVT_MENU, lambda _: self.run_adb_command(["reboot"]), device_reboot)
+        self.Bind(wx.EVT_MENU, lambda _: self.run_adb_command(["reboot", "bootloader"]), device_bootloader)
+        self.Bind(wx.EVT_MENU, self.on_disconnect_device, device_disconnect)
+        self.Bind(wx.EVT_MENU, self.on_connect, network_connect)
+        self.Bind(wx.EVT_MENU, self.on_disconnect, network_disconnect)
+
+        # Add Exit to File menu on non-MacOS
+        if sys.platform != "darwin":
+            file_menu.Append(wx.ID_EXIT)
+            self.Bind(wx.EVT_MENU, self._on_quit, id=wx.ID_EXIT)
+
+        for item in device_menu.MenuItems:
+            item.Enable(False)
+
+        # Save the following for later use
+        self.device_disconnect = device_disconnect
+        self.device_menu = device_menu
+
+        return menu_bar
 
     def update_devices(self, event=None):
         devices = sorted(ADB.list_devices())
 
-        if self.devices != devices:
-            self.device_buttons.Disable()
-            self.disconnect_button.Disable()
+        if self.list.Items != devices:
+            for item in self.device_menu.MenuItems:
+                item.Enable(False)
 
-            self.devices = devices
-            self.list.Clear()
-            for device in devices:
-                self.list.Append(device)
+            self.list.Items = devices
 
     NET_DEVICE = re.compile(r'(.*):(\d+)')
 
@@ -101,13 +111,11 @@ class ListDevicesFrame(wx.Frame):
         try:
             ADB(self.get_selected_device()).command(command)
         except subprocess.SubprocessError as e:
-            dlg = wx.MessageDialog(
-                None, e.stderr, "Error", wx.OK | wx.ICON_ERROR)
+            dlg = wx.MessageDialog(None, e.stderr, "Error", wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
         except Exception as e:
-            dlg = wx.MessageDialog(
-                None, str(e), "Error", wx.OK | wx.ICON_ERROR)
+            dlg = wx.MessageDialog(None, str(e), "Error", wx.OK | wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
 
@@ -115,18 +123,15 @@ class ListDevicesFrame(wx.Frame):
         return self.list.GetString(self.list.GetSelection())
 
     def on_select_device(self, event):
-        if not event.IsSelection():
-            return
+        # Enable all device items
+        for item in self.device_menu.MenuItems:
+            item.Enable(True)
 
-        self.device_buttons.Enable()
+        # Enable device disconnect only if selected device is a net device
         device = self.get_selected_device()
-        self.disconnect_button.Enable(bool(
-            ListDevicesFrame.NET_DEVICE.fullmatch(device)))
+        self.device_disconnect.Enable(bool(ListDevicesFrame.NET_DEVICE.fullmatch(device)))
 
     def on_start_device(self, event):
-        if not event.IsSelection():
-            return
-
         self.on_select(self.get_selected_device())
 
     def on_connect(self, _):
@@ -142,6 +147,10 @@ class ListDevicesFrame(wx.Frame):
             self.update_devices()
 
     def on_disconnect(self, _):
+        ADB.disconnect()
+        self.update_devices()
+
+    def on_disconnect_device(self, _):
         device = self.get_selected_device()
         device = ListDevicesFrame.NET_DEVICE.findall(device)
         ADB.disconnect(*device[0])

@@ -17,20 +17,15 @@ class ListDevicesFrame(wx.Frame):
 
         panel = wx.Panel(self)
 
-        self.list = wx.ListBox(panel)
-        button_panel = wx.Panel(panel)
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.list, 4, wx.EXPAND)
-        sizer.Add(button_panel, -1, wx.EXPAND)
-        panel.SetSizer(sizer)
-        panel.Fit()
+        device_panel = wx.Panel(panel)
+        self.list = wx.ListBox(device_panel)
+        device_button_panel = wx.Panel(device_panel)
 
         # Buttons that work on a selected device
         self.device_buttons = []
 
         def add_device_button(name, cb):
-            button = wx.Button(button_panel, label=name)
+            button = wx.Button(device_button_panel, label=name)
             button.Bind(wx.EVT_BUTTON, cb)
             button.Disable()
             self.device_buttons.append(button)
@@ -45,6 +40,7 @@ class ListDevicesFrame(wx.Frame):
             ["reboot", "bootloader"]))
 
         # Buttons that don't require a selected device
+        button_panel = wx.Panel(panel)
         self.connect_button = wx.Button(button_panel, label="Connect")
         self.connect_button.Bind(wx.EVT_BUTTON, self.on_connect)
 
@@ -52,15 +48,35 @@ class ListDevicesFrame(wx.Frame):
         self.disconnect_button.Disable()
         self.disconnect_button.Bind(wx.EVT_BUTTON, self.on_disconnect)
 
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        # device buttons
+        sizer = wx.BoxSizer(wx.VERTICAL)
 
         for b in self.device_buttons:
-            sizer.Add(b)
+            sizer.Add(b, 0, wx.EXPAND)
 
+        device_button_panel.SetSizer(sizer)
+        device_button_panel.Fit()
+
+        # device panel (list + buttons)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(self.list, 4, wx.EXPAND)
+        sizer.Add(device_button_panel, -1, wx.EXPAND)
+        device_panel.SetSizer(sizer)
+        device_panel.Fit()
+
+        # buttons on the lower part
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.connect_button)
         sizer.Add(self.disconnect_button)
         button_panel.SetSizer(sizer)
         button_panel.Fit()
+
+        # main sizer
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(device_panel, 4, wx.EXPAND)
+        sizer.Add(button_panel, -1, wx.EXPAND)
+        panel.SetSizer(sizer)
+        panel.Fit()
 
         self.Bind(wx.EVT_LISTBOX, self.on_select_device)
         self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_start_device)

@@ -19,16 +19,15 @@ class ListDevicesFrame(wx.Frame):
 
         device_panel = wx.Panel(panel)
         self.list = wx.ListBox(device_panel)
-        device_button_panel = wx.Panel(device_panel)
 
         # Buttons that work on a selected device
-        self.device_buttons = []
+        self.device_buttons = wx.Panel(device_panel)
+        sizer = wx.BoxSizer(wx.VERTICAL)
 
         def add_device_button(name, cb):
-            button = wx.Button(device_button_panel, label=name)
+            button = wx.Button(self.device_buttons, label=name)
             button.Bind(wx.EVT_BUTTON, cb)
-            button.Disable()
-            self.device_buttons.append(button)
+            sizer.Add(button, 0, wx.EXPAND)
 
         add_device_button("Start", self.on_start_device)
         add_device_button("Root", lambda _: self.run_adb_command(["root"]))
@@ -39,6 +38,10 @@ class ListDevicesFrame(wx.Frame):
         add_device_button("Bootloader", lambda _: self.run_adb_command(
             ["reboot", "bootloader"]))
 
+        self.device_buttons.Disable()
+        self.device_buttons.SetSizer(sizer)
+        self.device_buttons.Fit()
+
         # Buttons that don't require a selected device
         button_panel = wx.Panel(panel)
         self.connect_button = wx.Button(button_panel, label="Connect")
@@ -48,19 +51,10 @@ class ListDevicesFrame(wx.Frame):
         self.disconnect_button.Disable()
         self.disconnect_button.Bind(wx.EVT_BUTTON, self.on_disconnect)
 
-        # device buttons
-        sizer = wx.BoxSizer(wx.VERTICAL)
-
-        for b in self.device_buttons:
-            sizer.Add(b, 0, wx.EXPAND)
-
-        device_button_panel.SetSizer(sizer)
-        device_button_panel.Fit()
-
         # device panel (list + buttons)
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.list, 4, wx.EXPAND)
-        sizer.Add(device_button_panel, -1, wx.EXPAND)
+        sizer.Add(self.device_buttons, -1, wx.EXPAND)
         device_panel.SetSizer(sizer)
         device_panel.Fit()
 
@@ -93,9 +87,7 @@ class ListDevicesFrame(wx.Frame):
         devices = sorted(ADB.list_devices())
 
         if self.devices != devices:
-            for b in self.device_buttons:
-                b.Disable()
-
+            self.device_buttons.Disable()
             self.disconnect_button.Disable()
 
             self.devices = devices
@@ -126,11 +118,8 @@ class ListDevicesFrame(wx.Frame):
         if not event.IsSelection():
             return
 
-        for b in self.device_buttons:
-            b.Enable()
-
+        self.device_buttons.Enable()
         device = self.get_selected_device()
-
         self.disconnect_button.Enable(bool(
             ListDevicesFrame.NET_DEVICE.fullmatch(device)))
 

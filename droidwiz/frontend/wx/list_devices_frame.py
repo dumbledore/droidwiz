@@ -1,5 +1,6 @@
 # Copyright (C) 2020-2024, Svetlin Ankov
 
+import subprocess
 import re
 import wx
 
@@ -25,10 +26,25 @@ class ListDevicesFrame(wx.Frame):
         panel.SetSizer(sizer)
         panel.Fit()
 
-        self.start_button = wx.Button(button_panel, label="Start")
-        self.start_button.Disable()
-        self.start_button.Bind(wx.EVT_BUTTON, self.on_start_device)
+        # Buttons that work on a selected device
+        self.device_buttons = []
 
+        def add_device_button(name, cb):
+            button = wx.Button(button_panel, label=name)
+            button.Bind(wx.EVT_BUTTON, cb)
+            button.Disable()
+            self.device_buttons.append(button)
+
+        add_device_button("Start", self.on_start_device)
+        add_device_button("Root", lambda _: self.run_adb_command(["root"]))
+        add_device_button("Unroot", lambda _: self.run_adb_command(["unroot"]))
+        add_device_button(
+            "Remount", lambda _: self.run_adb_command(["remount"]))
+        add_device_button("Reboot", lambda _: self.run_adb_command(["reboot"]))
+        add_device_button("Bootloader", lambda _: self.run_adb_command(
+            ["reboot", "bootloader"]))
+
+        # Buttons that don't require a selected device
         self.connect_button = wx.Button(button_panel, label="Connect")
         self.connect_button.Bind(wx.EVT_BUTTON, self.on_connect)
 
@@ -37,7 +53,10 @@ class ListDevicesFrame(wx.Frame):
         self.disconnect_button.Bind(wx.EVT_BUTTON, self.on_disconnect)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.start_button)
+
+        for b in self.device_buttons:
+            sizer.Add(b)
+
         sizer.Add(self.connect_button)
         sizer.Add(self.disconnect_button)
         button_panel.SetSizer(sizer)
@@ -58,7 +77,9 @@ class ListDevicesFrame(wx.Frame):
         devices = sorted(ADB.list_devices())
 
         if self.devices != devices:
-            self.start_button.Disable()
+            for b in self.device_buttons:
+                b.Disable()
+
             self.disconnect_button.Disable()
 
             self.devices = devices
@@ -68,22 +89,42 @@ class ListDevicesFrame(wx.Frame):
 
     NET_DEVICE = re.compile(r'(.*):(\d+)')
 
-    def on_select_device(self, event):
-        self.start_button.Enable()
+    def run_adb_command(self, command):
+        try:
+            ADB(self.get_selected_device()).command(command)
+        except subprocess.SubprocessError as e:
+            dlg = wx.MessageDialog(
+                None, e.stderr, "Error", wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+        except Exception as e:
+            dlg = wx.MessageDialog(
+                None, str(e), "Error", wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
 
-        sel = self.list.GetSelection()
-        device = self.list.GetString(sel)
+    def get_selected_device(self):
+        return self.list.GetString(self.list.GetSelection())
+
+    def on_select_device(self, event):
+        if not event.IsSelection():
+            return
+
+        for b in self.device_buttons:
+            b.Enable()
+
+        device = self.get_selected_device()
 
         self.disconnect_button.Enable(bool(
             ListDevicesFrame.NET_DEVICE.fullmatch(device)))
 
     def on_start_device(self, event):
-        sel = self.list.GetSelection()
-        device = self.list.GetString(sel)
+        if not event.IsSelection():
+            return
 
-        self.on_select(device)
+        self.on_select(self.get_selected_device())
 
-    def on_connect(self, event):
+    def on_connect(self, _):
         device = wx.GetTextFromUser(
             'Enter device: IP[:PORT]', 'Connect device')
         if device:
@@ -95,10 +136,8 @@ class ListDevicesFrame(wx.Frame):
             ADB.connect(device, port)
             self.update_devices()
 
-    def on_disconnect(self, event):
-        sel = self.list.GetSelection()
-        device = self.list.GetString(sel)
-
+    def on_disconnect(self, _):
+        device = self.get_selected_device()
         device = ListDevicesFrame.NET_DEVICE.findall(device)
         ADB.disconnect(*device[0])
         self.update_devices()

@@ -18,3 +18,6 @@ class Input(Service):
         self.adb.shell('input swipe {} {} {} {} {}'.format(
             start[0], start[1], end[0], end[1], duration
         ))
+
+    def text(self, text):
+        self.adb.shell(f'input text "{text}"')

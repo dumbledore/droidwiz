@@ -4,6 +4,14 @@ import wx
 
 from .screenshot_thread import ScreenshotThread, EVT_SCREENSHOT
 
+ALLOWED_KEYS = "1234567890-=!@#$%^&*()_+qwertyuiop[]QWERTYUIOP{}asdfghjkl;'\\ASDFGHJKL:\"|`zxcvbnm,./~ZXCVBNM<>?"
+
+ESCAPED_KEYS = {
+    '"': '\\"',
+    '`': '\\`',
+    '\\': '\\\\',
+}
+
 
 class DeviceFrame(wx.Frame):
     def __init__(self, device,
@@ -23,12 +31,18 @@ class DeviceFrame(wx.Frame):
 
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
-        self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_down)
-        self.Bind(wx.EVT_LEFT_UP, self.on_mouse_up)
-        self.Bind(wx.EVT_MOTION, self.on_mouse_move)
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
-        self.SetClientSize(self.FromDIP(self.choose_size(size_divisor)))
+        self.panel = wx.Panel(self, wx.ID_ANY)
+        self.panel.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_down)
+        self.panel.Bind(wx.EVT_LEFT_UP, self.on_mouse_up)
+        self.panel.Bind(wx.EVT_MOTION, self.on_mouse_move)
+        self.panel.Bind(wx.EVT_CHAR, self.on_char)
+        self.panel.SetFocus()
+
+        size = self.FromDIP(self.choose_size(size_divisor))
+        self.SetClientSize(size)
+        self.panel.SetClientSize(size)
 
         self.pos = None
         self.timestamp = None
@@ -40,6 +54,20 @@ class DeviceFrame(wx.Frame):
         self.Bind(EVT_SCREENSHOT, self.update_screenshot)
         self.screenshot_thread = ScreenshotThread(
             self, device, png, self.on_error)
+
+    def on_char(self, event):
+
+        keycode = event.GetUnicodeKey()
+
+        if keycode != wx.WXK_NONE and chr(keycode) in ALLOWED_KEYS:
+            # It's a printable character
+            keycode = chr(keycode)
+            keycode = ESCAPED_KEYS.get(keycode, keycode)
+            self.device.input.text(keycode)
+        else:
+            # It's a special key, deal with all the known ones:
+            keycode = event.GetKeyCode()
+            print(f"keycode: {keycode}")
 
     def choose_size(self, size_divisor):
         size = self.screen_size
@@ -106,6 +134,7 @@ class DeviceFrame(wx.Frame):
 
         if self.GetClientSize() != size:
             self.SetClientSize(size)
+            self.panel.SetClientSize(size)
 
     def on_paint(self, event):
         dc = wx.AutoBufferedPaintDC(self)

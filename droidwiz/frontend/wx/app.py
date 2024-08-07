@@ -34,8 +34,7 @@ class App(wx.App):
             devices_frame.Destroy()
             try:
                 device = Device(name)
-                self.device = DeviceFrame(device, png=True)
-                print(f"Setting device: {self.device}")
+                self.device = DeviceFrame(device, png=True, resize_quality=wx.IMAGE_QUALITY_BILINEAR)
                 self.device.Center()
                 self.device.Bind(wx.EVT_CLOSE, self.on_close_device)
                 self.device.Show()

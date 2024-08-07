@@ -143,7 +143,10 @@ class ListDevicesFrame(wx.Frame):
             if full_device:
                 device, port = full_device[0]
 
-            ADB.connect(device, port)
+            result = ADB.connect(device, port)
+            dlg = wx.MessageDialog(None, result, "adb connect", wx.OK | wx.ICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
             self.update_devices()
 
     def on_disconnect(self, _):

@@ -76,8 +76,11 @@ class ADB(object):
 
     @classmethod
     def connect(cls, host, port=PORT):
-        subprocess.check_call(
-            ['adb', 'connect', '{}:{}'.format(host, port)]
+        # adb connect does not return error code on error
+        # and uses stdout for error messages
+        return subprocess.check_output(
+            ['adb', 'connect', '{}:{}'.format(host, port)],
+            universal_newlines=True
         )
 
     @classmethod

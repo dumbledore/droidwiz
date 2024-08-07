@@ -36,6 +36,12 @@ class App(wx.App):
                 device = Device(name)
                 self.device = DeviceFrame(device, png=True, resize_quality=wx.IMAGE_QUALITY_BILINEAR)
                 self.device.Center()
+
+                # Make sure the window controls are always visible
+                position = self.device.GetPosition()
+                position = [x if x > 30 else 30 for x in position]
+                self.device.SetPosition(position)
+
                 self.device.Bind(wx.EVT_CLOSE, self.on_close_device)
                 self.device.Show()
             except subprocess.SubprocessError as e:

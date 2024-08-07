@@ -10,39 +10,51 @@ from .device_frame import DeviceFrame
 from .list_devices_frame import ListDevicesFrame
 
 
-def on_close_device(event):
-    event.Skip()
-    choose_device()
+class App(wx.App):
+    def OnInit(self):
+        self.device = False
+        self.choose_device()
+        return True
 
+    def OnExit(self):
+        if self.device:
+            self.device.Close()
 
-def choose_device():
-    devices_frame = None
+        return 0
 
-    def show_device(name):
-        devices_frame.Close()
-        devices_frame.Destroy()
-        try:
-            device = Device(name)
-            frame = DeviceFrame(device, png=True)
-            frame.Center()
-            frame.Bind(wx.EVT_CLOSE, on_close_device)
-            frame.Show()
-        except subprocess.SubprocessError as e:
-            dlg = wx.MessageDialog(
-                None, e.stderr, "Error", wx.OK | wx.ICON_ERROR)
-            dlg.ShowModal()
-            dlg.Destroy()
-            choose_device()
-        except Exception as e:
-            dlg = wx.MessageDialog(
-                None, str(e), "Error", wx.OK | wx.ICON_ERROR)
-            dlg.ShowModal()
-            dlg.Destroy()
-            choose_device()
+    def on_close_device(self, event):
+        event.Skip()
+        self.choose_device()
 
-    devices_frame = ListDevicesFrame(show_device)
-    devices_frame.Center()
-    devices_frame.Show()
+    def choose_device(self):
+        devices_frame = None
+
+        def show_device(name):
+            devices_frame.Close()
+            devices_frame.Destroy()
+            try:
+                device = Device(name)
+                self.device = DeviceFrame(device, png=True)
+                print(f"Setting device: {self.device}")
+                self.device.Center()
+                self.device.Bind(wx.EVT_CLOSE, self.on_close_device)
+                self.device.Show()
+            except subprocess.SubprocessError as e:
+                dlg = wx.MessageDialog(
+                    None, e.stderr, "Error", wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+                self.choose_device()
+            except Exception as e:
+                dlg = wx.MessageDialog(
+                    None, str(e), "Error", wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+                self.choose_device()
+
+        devices_frame = ListDevicesFrame(show_device)
+        devices_frame.Center()
+        devices_frame.Show()
 
 
 def main():
@@ -50,9 +62,7 @@ def main():
         print('ADB not available', file=sys.stderr)
         sys.exit(1)
 
-    app = wx.App()
-    choose_device()
-    app.MainLoop()
+    App().MainLoop()
 
 
 if __name__ == '__main__':

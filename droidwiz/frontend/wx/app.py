@@ -22,6 +22,10 @@ class App(wx.App):
 
         return 0
 
+    def Quit(self):
+        # This will close left-over windows (if any)
+        self.ExitMainLoop()
+
     def on_close_device(self, event):
         event.Skip()
         self.choose_device()
@@ -57,7 +61,7 @@ class App(wx.App):
                 dlg.Destroy()
                 self.choose_device()
 
-        devices_frame = ListDevicesFrame(show_device)
+        devices_frame = ListDevicesFrame(self, show_device)
         devices_frame.Center()
         devices_frame.Show()
 

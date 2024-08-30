@@ -9,9 +9,10 @@ from droidwiz.android.adb import ADB
 
 
 class ListDevicesFrame(wx.Frame):
-    def __init__(self, on_select, *args, **kwargs):
+    def __init__(self, app, on_select, *args, **kwargs):
         super().__init__(None, title="Devices", *args, **kwargs)
 
+        self.app = app
         self.on_select = on_select
 
         # Menu bar
@@ -85,7 +86,7 @@ class ListDevicesFrame(wx.Frame):
         # Add Exit to File menu on non-MacOS
         if sys.platform != "darwin":
             file_menu.Append(wx.ID_EXIT)
-            self.Bind(wx.EVT_MENU, self._on_quit, id=wx.ID_EXIT)
+            self.Bind(wx.EVT_MENU, lambda _: self.app.Quit(), id=wx.ID_EXIT)
 
         for item in device_menu.MenuItems:
             item.Enable(False)

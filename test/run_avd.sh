@@ -53,9 +53,40 @@ declare -ra PLATFORMS=(
     [35]=google_apis
 )
 
+ENVIRONMENT="$(uname -s)"
+
+case "${ENVIRONMENT}" in
+    CYGWIN*)
+        AVD_MANAGER=avdmanager.bat
+        SDK_MANAGER=sdkmanager.bat
+        EMULATOR=emulator.exe
+        ;;
+    MINGW*)
+        AVD_MANAGER=avdmanager.bat
+        SDK_MANAGER=sdkmanager.bat
+        EMULATOR=emulator.exe
+        ;;
+    *)
+        # Assume Unix-like, e.g. Linux, MacOS, etc.
+        AVD_MANAGER=avdmanager
+        SDK_MANAGER=sdkmanager
+        EMULATOR=emulator
+        ;;
+esac
+
+if [[ ! -d "${ANDROID_SDK}" ]]
+then
+    echo "Please specify Android SDK location by exporting \$ANDROID_SDK"
+    exit 1
+fi
+
+AVD_MANAGER="${ANDROID_SDK}/cmdline-tools/latest/bin/${AVD_MANAGER}"
+SDK_MANAGER="${ANDROID_SDK}/cmdline-tools/latest/bin/${SDK_MANAGER}"
+EMULATOR="${ANDROID_SDK}/emulator/${EMULATOR}"
+
 function delete_avd() {
     local avd="${1}"
-    avdmanager list avds | grep "Name: ${avd}" > /dev/null && avdmanager -s delete avd -n "${avd}"
+    "${AVD_MANAGER}" list avds | grep "Name: ${avd}" > /dev/null && "${AVD_MANAGER}" -s delete avd -n "${avd}"
     # Remove directory (if empty)
     rmdir .avd 2>/dev/null
 }
@@ -76,21 +107,21 @@ function run_avd() {
     # install packages
 
     # ADB is in platform-tools
-    sdkmanager --install platform-tools
-    sdkmanager --install emulator
+    "${SDK_MANAGER}" --install platform-tools
+    "${SDK_MANAGER}" --install emulator
 
     # You need the platform package in order to run the image in emulator
-    sdkmanager --install "${platform_package}"
-    sdkmanager --install "${image_package}"
+    "${SDK_MANAGER}" --install "${platform_package}"
+    "${SDK_MANAGER}" --install "${image_package}"
 
     # delete AVD if exists
     delete_avd "${avd}"
 
     # create AVD
-    avdmanager -s create avd -n "${avd}" -k "${image_package}" -p ".avd/${avd}"
+    "${AVD_MANAGER}" -s create avd -n "${avd}" -k "${image_package}" -p ".avd/${avd}"
 
     # run AVD trough emulator
-    emulator "@${avd}"
+    "${EMULATOR}" "@${avd}"
 
     # AVD not needed anymore
     delete_avd "${avd}"

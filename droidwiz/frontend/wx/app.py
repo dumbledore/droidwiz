@@ -14,6 +14,7 @@ class App(wx.App):
     def OnInit(self):
         self.device = False
         self.choose_device()
+        wx.Log.SetActiveTarget(wx.LogStderr())
         return True
 
     def OnExit(self):

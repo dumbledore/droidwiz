@@ -30,11 +30,13 @@ class DeviceFrame(wx.Frame):
 
         super().__init__(None, title=device.name, *args, **kwargs)
 
-        self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
-        self.panel = wx.Panel(self, wx.ID_ANY)
+        self.panel = wx.Panel()
+        self.panel.SetBackgroundStyle(wx.BG_STYLE_PAINT)
+        self.panel.Create(self)
+        self.panel.Bind(wx.EVT_PAINT, self.on_paint)
         self.panel.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_down)
         self.panel.Bind(wx.EVT_LEFT_UP, self.on_mouse_up)
         self.panel.Bind(wx.EVT_MOTION, self.on_mouse_move)
@@ -138,7 +140,7 @@ class DeviceFrame(wx.Frame):
             self.panel.SetClientSize(size)
 
     def on_paint(self, event):
-        dc = wx.AutoBufferedPaintDC(self)
+        dc = wx.AutoBufferedPaintDC(self.panel)
         if self.screenshot:
             img = self.screenshot
             img = img.Scale(*self.GetClientSize(), self.resize_quality)

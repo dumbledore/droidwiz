@@ -54,6 +54,7 @@ class ListDevicesFrame(wx.Frame):
         device_remount = device_menu.Append(wx.ID_ANY, "Re&mount", "Remount partitions read-write")
         device_reboot = device_menu.Append(wx.ID_ANY, "Reboo&t", "Reboots the device")
         device_bootloader = device_menu.Append(wx.ID_ANY, "&Bootloader", "Reboots the device into the bootloader")
+        device_poweroff = device_menu.Append(wx.ID_ANY, "&Power off", "Powers off the device")
         device_menu.AppendSeparator()
 
         device_disconnect = device_menu.Append(wx.ID_ANY, "&Disconnect", "Disconnect from given TCP/IP device")
@@ -79,6 +80,7 @@ class ListDevicesFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, lambda _: self.run_adb_command(["remount"]), device_remount)
         self.Bind(wx.EVT_MENU, lambda _: self.run_adb_command(["reboot"]), device_reboot)
         self.Bind(wx.EVT_MENU, lambda _: self.run_adb_command(["reboot", "bootloader"]), device_bootloader)
+        self.Bind(wx.EVT_MENU, lambda _: self.run_adb_command(["reboot", "-p"]), device_poweroff)
         self.Bind(wx.EVT_MENU, self.on_disconnect_device, device_disconnect)
         self.Bind(wx.EVT_MENU, self.on_connect, network_connect)
         self.Bind(wx.EVT_MENU, self.on_disconnect, network_disconnect)

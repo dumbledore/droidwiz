@@ -20,6 +20,10 @@ class ScreenshotThread(ST):
     def _callback(self, data, fps):
         if self.png:
             screenshot = wx.Image(io.BytesIO(data), wx.BITMAP_TYPE_PNG)
+
+            # Raise if failed to create image from buffer
+            if not screenshot.IsOk():
+                raise Exception("Not a valid PNG")
         else:
             # the first 4 DWORDS are width, height, pixel format, data space
             # so skip the first 16 bytes

@@ -1,5 +1,6 @@
 # Copyright (C) 2020-2024, Svetlin Ankov
 
+import sys
 import wx
 
 from .screenshot_thread import ScreenshotThread, EVT_SCREENSHOT
@@ -151,6 +152,7 @@ class DeviceFrame(wx.Frame):
 
     def on_error(self, error):
         self.statusbar.SetStatusText(f"Error: {error}")
+        print(error, sys.stderr)
 
     def on_close(self, event):
         self.screenshot_thread.stop()

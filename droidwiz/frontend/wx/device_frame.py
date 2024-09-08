@@ -3,6 +3,8 @@
 import sys
 import wx
 
+from droidwiz.android.resources.icons import get_icon
+from .button_window import ButtonWindow
 from .screenshot_thread import ScreenshotThread, EVT_SCREENSHOT
 
 ALLOWED_KEYS = "1234567890-=!@#$%^&*()_+qwertyuiop[]QWERTYUIOP{}asdfghjkl;'\\ASDFGHJKL:\"|`zxcvbnm,./~ZXCVBNM<>?"
@@ -30,6 +32,19 @@ class DeviceFrame(wx.Frame):
 
         super().__init__(None, title=device.name, *args, **kwargs)
 
+        self.buttons = ButtonWindow(self, [
+            (get_icon("emulator-power"), None),
+            (get_icon("emulator-volume-up"), None),
+            (get_icon("emulator-volume-down"), None),
+            (get_icon("emulator-screenshot"), None),
+            (get_icon("emulator-back"), None),
+            (get_icon("emulator-home"), None),
+            (get_icon("emulator-apps"), None),
+        ])
+
+        self.buttons.Show()
+
+        self.Bind(wx.EVT_MOVE, self.on_move)
         self.Bind(wx.EVT_SIZE, self.on_size)
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
@@ -99,6 +114,13 @@ class DeviceFrame(wx.Frame):
 
         return x, y
 
+    def update_buttons(self):
+        main_pos = self.GetPosition()
+        main_size = self.GetSize()
+        new_x = main_pos.x + main_size.x  # Right of main frame
+        new_y = main_pos.y  # Align with top
+        self.buttons.SetPosition((new_x, new_y))
+
     def on_mouse_down(self, event):
         x, y, inside = self.get_coord_inside(event.GetPosition())
         if inside:
@@ -131,6 +153,10 @@ class DeviceFrame(wx.Frame):
         self.timestamp = None
         self.moved = False
 
+    def on_move(self, event):
+        self.update_buttons()
+        event.Skip()
+
     def on_size(self, event):
         width, _ = self.GetClientSize()
         size = (width, int(width / self.screen_aspect))
@@ -138,6 +164,8 @@ class DeviceFrame(wx.Frame):
         if self.GetClientSize() != size:
             self.SetClientSize(size)
             self.panel.SetClientSize(size)
+            self.update_buttons()
+            event.Skip()
 
     def on_paint(self, event):
         dc = wx.AutoBufferedPaintDC(self.panel)

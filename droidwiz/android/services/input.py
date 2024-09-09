@@ -21,3 +21,7 @@ class Input(Service):
 
     def text(self, text):
         self.adb.shell(f'input text "{text}"')
+
+    # see https://developer.android.com/reference/android/view/KeyEvent
+    def keyevent(self, key):
+        self.adb.shell(f'input keyevent KEYCODE_{key.upper()}')

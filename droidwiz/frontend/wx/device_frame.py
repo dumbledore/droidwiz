@@ -33,13 +33,13 @@ class DeviceFrame(wx.Frame):
         super().__init__(None, title=device.name, *args, **kwargs)
 
         self.buttons = ButtonWindow(self, [
-            (get_icon("emulator-power"), None),
-            (get_icon("emulator-volume-up"), None),
-            (get_icon("emulator-volume-down"), None),
+            (get_icon("emulator-power"), lambda _: self.device.input.keyevent("power")),
+            (get_icon("emulator-volume-up"), lambda _: self.device.input.keyevent("volume_up")),
+            (get_icon("emulator-volume-down"), lambda _: self.device.input.keyevent("volume_down")),
             (get_icon("emulator-screenshot"), None),
-            (get_icon("emulator-back"), None),
-            (get_icon("emulator-home"), None),
-            (get_icon("emulator-apps"), None),
+            (get_icon("emulator-back"), lambda _: self.device.input.keyevent("back")),
+            (get_icon("emulator-home"), lambda _: self.device.input.keyevent("home")),
+            (get_icon("emulator-apps"), lambda _: self.device.input.keyevent("app_switch")),
         ])
 
         self.buttons.Show()

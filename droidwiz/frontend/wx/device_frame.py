@@ -55,8 +55,7 @@ class DeviceFrame(wx.Frame):
         self.panel.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_down)
         self.panel.Bind(wx.EVT_LEFT_UP, self.on_mouse_up)
         self.panel.Bind(wx.EVT_MOTION, self.on_mouse_move)
-        self.panel.Bind(wx.EVT_CHAR, self.on_char)
-        self.panel.SetFocus()
+        self.panel.Bind(wx.EVT_CHAR_HOOK, self.on_char)
 
         size = self.FromDIP(self.choose_size(size_divisor))
         self.SetClientSize(size)
@@ -73,7 +72,6 @@ class DeviceFrame(wx.Frame):
             self, device, png, self.on_error)
 
     def on_char(self, event):
-
         keycode = event.GetUnicodeKey()
 
         if keycode != wx.WXK_NONE and chr(keycode) in ALLOWED_KEYS:

@@ -37,9 +37,9 @@ class ADB(object):
 
     def command(self, command, binary=False):
         if not isinstance(command, list):
-            command = [ command ]
+            command = [command]
 
-        cmd = [ 'adb', '-s', self.name ] + command
+        cmd = ['adb', '-s', self.name] + command
 
         if self.DEBUG:
             print(" ".join(cmd))
@@ -60,7 +60,7 @@ class ADB(object):
 
     def exec_out(self, cmd):
         return self.command(
-            [ 'exec-out', cmd, ], binary=True
+            ['exec-out', cmd], binary=True
         )
 
     def get_state(self):
@@ -114,7 +114,7 @@ class ADB(object):
     @staticmethod
     def list_devices():
         out = subprocess.check_output(
-            [ 'adb', 'devices' ],
+            ['adb', 'devices'],
             universal_newlines=True
         )
 

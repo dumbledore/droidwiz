@@ -7,13 +7,36 @@ from droidwiz.android.resources.icons import get_icon
 from .button_window import ButtonWindow
 from .screenshot_thread import ScreenshotThread, EVT_SCREENSHOT
 
-ALLOWED_KEYS = "1234567890-=!@#$%^&*()_+qwertyuiop[]QWERTYUIOP{}asdfghjkl;'\\ASDFGHJKL:\"|`zxcvbnm,./~ZXCVBNM<>?"
+ALLOWED_KEYS = "1234567890-=!@#$%^&*()_+qwertyuiop[]QWERTYUIOP{}asdfghjkl;'\\ASDFGHJKL:\"|`zxcvbnm,./~ZXCVBNM<>? "
 
 ESCAPED_KEYS = {
     '"': '\\"',
     '`': '\\`',
     '\\': '\\\\',
 }
+
+
+SPECIAL_KEYS = {
+    wx.WXK_TAB: "tab",
+    wx.WXK_RETURN: "enter",
+    wx.WXK_ESCAPE: "escape",
+    wx.WXK_BACK: "del",
+    wx.WXK_DELETE: "forward_del",
+    wx.WXK_INSERT: "insert",
+    wx.WXK_LEFT: "dpad_left",
+    wx.WXK_RIGHT: "dpad_right",
+    wx.WXK_UP: "dpad_up",
+    wx.WXK_DOWN: "dpad_down",
+    wx.WXK_HOME: "move_home",
+    wx.WXK_END: "move_end",
+    wx.WXK_PAGEUP: "page_up",
+    wx.WXK_PAGEDOWN: "page_down",
+    wx.WXK_VOLUME_MUTE: "volume_mute",
+    wx.WXK_VOLUME_UP: "volume_up",
+    wx.WXK_VOLUME_DOWN: "volume_down",
+}
+
+# TODO: Use input keycombination KEYCODE_SHIFT_LEFT KEYCODE_A, etc. instead of input text
 
 
 class DeviceFrame(wx.Frame):
@@ -78,11 +101,14 @@ class DeviceFrame(wx.Frame):
             # It's a printable character
             keycode = chr(keycode)
             keycode = ESCAPED_KEYS.get(keycode, keycode)
+            keycode = keycode.upper() if event.ShiftDown() else keycode.lower()
             self.device.input.text(keycode)
         else:
             # It's a special key, deal with all the known ones:
             keycode = event.GetKeyCode()
-            print(f"keycode: {keycode}")
+            if keycode in SPECIAL_KEYS:
+                keycode = SPECIAL_KEYS[keycode]
+                self.device.input.keyevent(keycode)
 
     def choose_size(self, size_divisor):
         size = self.screen_size

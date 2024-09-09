@@ -39,7 +39,7 @@ class App(wx.App):
             devices_frame.Destroy()
             try:
                 device = Device(name)
-                self.device = DeviceFrame(device, png=True, resize_quality=wx.IMAGE_QUALITY_BILINEAR)
+                self.device = DeviceFrame(self, device, png=True, resize_quality=wx.IMAGE_QUALITY_BILINEAR)
                 self.device.Center()
 
                 # Make sure the window controls are always visible

@@ -40,12 +40,14 @@ SPECIAL_KEYS = {
 
 
 class DeviceFrame(wx.Frame):
-    def __init__(self, device,
+    def __init__(self, app,
+                 device,
                  png=True,
                  resize_quality=wx.IMAGE_QUALITY_NORMAL,
                  size_divisor=640,
                  *args, **kwargs):
 
+        self.app = app
         self.device = device
         self.screen_size = device.wm.get_size()
         self.screen_aspect = device.wm.get_aspect()
@@ -80,6 +82,9 @@ class DeviceFrame(wx.Frame):
         self.panel.Bind(wx.EVT_MOTION, self.on_mouse_move)
         self.panel.Bind(wx.EVT_CHAR_HOOK, self.on_char)
 
+        # Menu bar
+        self.SetMenuBar(self.create_menu())
+
         size = self.FromDIP(self.choose_size(size_divisor))
         self.SetClientSize(size)
         self.panel.SetClientSize(size)
@@ -93,6 +98,23 @@ class DeviceFrame(wx.Frame):
         self.Bind(EVT_SCREENSHOT, self.update_screenshot)
         self.screenshot_thread = ScreenshotThread(
             self, device, png, self.on_error)
+
+    def create_menu(self):
+        menu_bar = wx.MenuBar()
+
+        # File
+        file_menu = wx.Menu()
+        file_menu.Append(wx.ID_CLOSE)
+        self.Bind(wx.EVT_MENU, lambda _: self.Close(), id=wx.ID_CLOSE)
+
+        menu_bar.Append(file_menu, "&File")
+
+        # Add Exit to File menu on non-MacOS
+        if sys.platform != "darwin":
+            file_menu.Append(wx.ID_EXIT)
+            self.Bind(wx.EVT_MENU, lambda _: self.app.Quit(), id=wx.ID_EXIT)
+
+        return menu_bar
 
     def on_char(self, event):
         keycode = event.GetUnicodeKey()

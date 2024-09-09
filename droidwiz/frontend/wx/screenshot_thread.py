@@ -12,10 +12,11 @@ ScreenshotEvent, EVT_SCREENSHOT = wx.lib.newevent.NewEvent()
 
 class ScreenshotThread(ST):
     def __init__(self, window, device, png, on_error):
-        super().__init__(self._callback, on_error, device, png)
+        super().__init__(self._callback, self._on_error, device, png)
 
         self.window = window
         self.screen_size = device.wm.get_size()
+        self.on_error = on_error
 
     def _callback(self, data, fps):
         if self.png:
@@ -32,3 +33,6 @@ class ScreenshotThread(ST):
 
         event = ScreenshotEvent(screenshot=screenshot, fps=fps)
         wx.PostEvent(self.window, event)
+
+    def _on_error(self, error):
+        wx.CallAfter(self.on_error, error)

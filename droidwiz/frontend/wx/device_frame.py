@@ -238,16 +238,22 @@ class DeviceFrame(wx.Frame):
             img = self.screenshot
             img = img.Scale(*self.GetClientSize(), self.resize_quality)
             dc.DrawBitmap(img.ConvertToBitmap(), 0, 0)
+        else:
+            dc.SetBackground(wx.Brush(wx.Colour(0, 0, 0xFF)))
+            dc.Clear()
 
     def update_screenshot(self, event):
         self.screenshot = event.screenshot
+        self.statusbar.SetStatusText("", 0)
         self.statusbar.SetStatusText("%.2f FPS (%s)" % (
             event.fps, "PNG" if self.png else "RAW"), 1)
         self.Refresh()
 
     def on_error(self, error):
-        self.statusbar.SetStatusText(f"Error: {error}")
         print(error, sys.stderr)
+        self.statusbar.SetStatusText(f"Error: {error}", 0)
+        self.screenshot = None
+        self.Refresh()
 
     def on_close(self, event):
         self.screenshot_thread.stop()

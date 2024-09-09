@@ -66,7 +66,6 @@ class DeviceFrame(wx.Frame):
         self.timestamp = None
         self.moved = False
 
-        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
         self.statusbar = self.CreateStatusBar(2)
 
         self.Bind(EVT_SCREENSHOT, self.update_screenshot)

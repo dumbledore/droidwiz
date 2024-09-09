@@ -1,5 +1,6 @@
 # Copyright (C) 2020-2024, Svetlin Ankov
 
+import subprocess
 import sys
 import wx
 
@@ -108,6 +109,25 @@ class DeviceFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, lambda _: self.Close(), id=wx.ID_CLOSE)
 
         menu_bar.Append(file_menu, "&File")
+
+        # Device
+        device_menu = wx.Menu()
+        device_root = device_menu.Append(wx.ID_ANY, "&Root", "Restart ADBD with root")
+        device_unroot = device_menu.Append(wx.ID_ANY, "&Unroot", "Restart ADBD without root")
+        device_remount = device_menu.Append(wx.ID_ANY, "Re&mount", "Remount partitions read-write")
+        device_reboot = device_menu.Append(wx.ID_ANY, "Reboo&t", "Reboots the device")
+        device_bootloader = device_menu.Append(wx.ID_ANY, "&Bootloader", "Reboots the device into the bootloader")
+        device_poweroff = device_menu.Append(wx.ID_ANY, "&Power off", "Powers off the device")
+
+        # Bind those
+        self.Bind(wx.EVT_MENU, lambda _: self.run_adb_command(["root"]), device_root)
+        self.Bind(wx.EVT_MENU, lambda _: self.run_adb_command(["unroot"]), device_unroot)
+        self.Bind(wx.EVT_MENU, lambda _: self.run_adb_command(["remount"]), device_remount)
+        self.Bind(wx.EVT_MENU, lambda _: self.run_adb_command(["reboot"]), device_reboot)
+        self.Bind(wx.EVT_MENU, lambda _: self.run_adb_command(["reboot", "bootloader"]), device_bootloader)
+        self.Bind(wx.EVT_MENU, lambda _: self.run_adb_command(["reboot", "-p"]), device_poweroff)
+
+        menu_bar.Append(device_menu, "&Device")
 
         # Add Exit to File menu on non-MacOS
         if sys.platform != "darwin":
@@ -232,3 +252,15 @@ class DeviceFrame(wx.Frame):
     def on_close(self, event):
         self.screenshot_thread.stop()
         event.Skip()
+
+    def run_adb_command(self, command):
+        try:
+            self.device.command(command)
+        except subprocess.SubprocessError as e:
+            dlg = wx.MessageDialog(None, e.stderr, "Error", wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+        except Exception as e:
+            dlg = wx.MessageDialog(None, str(e), "Error", wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
